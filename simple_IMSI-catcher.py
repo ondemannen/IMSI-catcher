@@ -98,8 +98,9 @@ def str_time():
 
 def xprint(str):
 	print(str)
-	with open("imsi.log","a") as fn:
-		fn.write(str+"\n")
+	if options.log:
+		with open(options.log,"a") as fn:
+			fn.write(str+"\n")
 
 # return something like '208 20 1752XXXXXX ; France ; Bouygues ; Bouygues Telecom'
 def str_imsi(imsi, p=""):
@@ -419,6 +420,7 @@ if __name__ == '__main__':
 	parser.add_option("-i", "--iface", dest="iface", default="lo", help="Interface (default : lo)")
 	parser.add_option("-m", "--imsi", dest="imsi", default="", type="string", help='IMSI to track (default : None, Example: 123456789101112 or "123 45 6789101112")')
 	parser.add_option("-p", "--port", dest="port", default="4729", type="int", help="Port (default : 4729)")
+	parser.add_option("-l", "--log", dest="log", default="imsi.log", type="string", help="Log to file (default : imsi.log)")
 	(options, args) = parser.parse_args()
 
 	show_all_tmsi=options.show_all_tmsi
