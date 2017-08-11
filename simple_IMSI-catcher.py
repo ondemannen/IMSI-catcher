@@ -4,6 +4,8 @@
 # Contributors : puyoulu, 1kali2kali
 # 2017/08/01
 # License : CC0 1.0 Universal
+# 2017-08-11 - Ondemannen
+#	- now logs to local file imsi.log and outputs timestamp
 
 """
 This program shows you IMSI numbers of cellphones around you.
@@ -63,6 +65,7 @@ Realtek RTL2832U : http://doc.ubuntu-fr.org/rtl2832u and http://doc.ubuntu-fr.or
 from scapy.all import sniff
 import json
 from optparse import OptionParser
+import time
 
 imsis=[] # [IMSI,...]
 tmsis={} # {TMSI:IMSI,...}
@@ -88,6 +91,15 @@ def str_tmsi(tmsi):
 		return new_tmsi
 	else:
 		return ""
+
+# return time stamp
+def str_time():
+	return time.strftime("%Y-%m-%d %H:%M:%S")
+
+def xprint(str):
+	print(str)
+	with open("imsi.log","a") as fn:
+		fn.write(str+"\n")
 
 # return something like '208 20 1752XXXXXX ; France ; Bouygues ; Bouygues Telecom'
 def str_imsi(imsi, p=""):
@@ -123,10 +135,10 @@ def str_imsi(imsi, p=""):
 			new_imsi=mcc+" "+mnc+" "+new_imsi[6:]
 
 	try:
-		m="{:17s} ; {:12s} ; {:10s} ; {:21s}".format(new_imsi, country.encode('utf-8'), brand.encode('utf-8'), operator.encode('utf-8'))
+		m="{:17s} ; {:30s} ; {:10s} ; {:21s}".format(new_imsi, country.encode('utf-8'), brand.encode('utf-8'), operator.encode('utf-8'))
 	except:
 		m=""
-		print("Error", p, new_imsi, country, brand, operator)
+		xprint("Error", p, new_imsi, country, brand, operator)
 	return m
 
 # print "Nb IMSI", "TMSI-1", "TMSI-2", "IMSI", "country", "brand", "operator", "MCC", "MNC", "LAC", "CellId"
@@ -188,9 +200,9 @@ def show_imsi(imsi1="", imsi2="", tmsi1="", tmsi2="", p=""):
 
 	if do_print:
 		if imsi1:
-			print("{:7s} ; {:10s} ; {:10s} ; {} ; {:4s} ; {:5s} ; {:6s} ; {:6s}".format(str(n), str_tmsi(tmsi1), str_tmsi(tmsi2), str_imsi(imsi1, p), str(mcc), str(mnc), str(lac), str(cell)))
+			xprint("{:19s} {:7s} ; {:10s} ; {:10s} ; {} ; {:4s} ; {:5s} ; {:6s} ; {:6s}".format(str_time(), str(n), str_tmsi(tmsi1), str_tmsi(tmsi2), str_imsi(imsi1, p), str(mcc), str(mnc), str(lac), str(cell)))
 		if imsi2:
-			print("{:7s} ; {:10s} ; {:10s} ; {} ; {:4s} ; {:5s} ; {:6s} ; {:6s}".format(str(n), str_tmsi(tmsi1), str_tmsi(tmsi2), str_imsi(imsi2, p), str(mcc), str(mnc), str(lac), str(cell)))
+			xprint("{:19s} {:7s} ; {:10s} ; {:10s} ; {} ; {:4s} ; {:5s} ; {:6s} ; {:6s}".format(str_time(), str(n), str_tmsi(tmsi1), str_tmsi(tmsi2), str_imsi(imsi2, p), str(mcc), str(mnc), str(lac), str(cell)))
 
 	if not imsi1 and not imsi2 and show_all_tmsi:
 		do_print=False
@@ -201,7 +213,7 @@ def show_imsi(imsi1="", imsi2="", tmsi1="", tmsi2="", p=""):
 			do_print=True
 			tmsis[tmsi2]=""
 		if do_print:
-			print("{:7s} ; {:10s} ; {:10s} ; {:17s} ; {:12s} ; {:10s} ; {:21s} ; {:4s} ; {:5s} ; {:6s} ; {:6s}".format(str(n), str_tmsi(tmsi1), str_tmsi(tmsi2), "", "", "", "", str(mcc), str(mnc), str(lac), str(cell)))
+			xprint("{:19s} {:7s} ; {:10s} ; {:10s} ; {:17s} ; {:12s} ; {:10s} ; {:21s} ; {:4s} ; {:5s} ; {:6s} ; {:6s}".format(str_time(), str(n), str_tmsi(tmsi1), str_tmsi(tmsi2), "", "", "", "", str(mcc), str(mnc), str(lac), str(cell)))
 
 
 # return mcc mnc, lac, cell, country, brand, operator
@@ -434,5 +446,5 @@ if __name__ == '__main__':
 	with open('mcc-mnc/mcc_codes.json', 'r') as file:
 		mcc_codes = json.load(file)
 
-	print("{:7s} ; {:10s} ; {:10s} ; {:17s} ; {:12s} ; {:10s} ; {:21s} ; {:5s} ; {:4s} ; {:5s} ; {:6s}".format("Nb IMSI", "TMSI-1", "TMSI-2", "IMSI", "country", "brand", "operator", "MCC", "MNC", "LAC", "CellId"))
+	xprint("{:19s} {:7s} ; {:10s} ; {:10s} ; {:17s} ; {:30s} ; {:10s} ; {:21s} ; {:5s} ; {:4s} ; {:5s} ; {:6s}".format("Date/Time","Nb IMSI", "TMSI-1", "TMSI-2", "IMSI", "country", "brand", "operator", "MCC", "MNC", "LAC", "CellId"))
 	sniff(iface=options.iface, filter="port {} and not icmp and udp".format(options.port), prn=find_imsi, store=0)
